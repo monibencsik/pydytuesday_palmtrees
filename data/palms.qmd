@@ -1,0 +1,126 @@
+---
+title: "Insights into the world of palm trees (PyDyTuesday 18 Mar 2025)"
+format: html
+author: 'Monika Bencsik'
+date: 07 Apr 2025
+code-fold: True
+toc: True
+theme: morph
+---
+
+# Project description
+This project is to describe the different traits of palm trees. The idea comes from a TidyTuesday/PyDyTuesday submission from 18 Mar 2025
+[raw data](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-03-18/readme.md). 
+
+According to wikipedia, 181 genera with around 2,600 species are known, most of which are restricted to tropical and subtropical climates.
+
+This dataset have 29 features, see their full description on the link above.
+
+# Importing the dataset
+
+```{python, include = False}
+#| context: setup
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+``` {python}
+df = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-03-18/palmtrees.csv', encoding='windows-1252')
+#df.info()
+```
+
+
+# Data analysis
+
+Inspecting the different columns and datatypes, there is a mix of categorical and numerical values in this dataframe. 
+
+::: {.panel-tabset}
+
+## Categorical columns
+
+Interesting features are the percentage of palms in each subfamily and tribe.
+
+```{python}
+sns.countplot(df['palm_subfamily'], stat = 'percent')
+plt.title('Percentage of palms in each subfamily')
+```
+
+```{python}
+
+sns.countplot(df['palm_tribe'], stat = 'percent')
+plt.title('Tribes of palms')
+```
+
+Browsing through the dataset, I was able to recognise some of the well-known names of palms, eg Raphia, Cocos, Royal, Palmetto etc. It turnes out, the top 5 species with the longest leaves are Raphia palms.
+
+```{python}
+
+longest_leafs = df.sort_values(by = 'max__blade__length_m', ascending = False)
+sns.barplot(data = longest_leafs[:5], x = 'acc_species', y = 'max__blade__length_m')
+plt.title('Raphia palms with the longest leaves ')
+```
+
+We can also visualize the shape of the fruits in each subfamily
+
+```{python}
+#plt.figure(figsize=(14,8))
+g = sns.FacetGrid(df, col="palm_subfamily") 
+g.map(sns.histplot, "fruit_shape")
+g.set_xticklabels(rotation=45)
+plt.title('Shape of palm fruit in each subfamily')
+#plt.savefig('fig01.png')
+```
+
+... or if a particular subfamily has bigger or smaller fruits.
+
+```{python}
+#plt.figure(figsize=(14,8))
+g = sns.FacetGrid(df, col="palm_subfamily", col_wrap=3)
+g.map(sns.histplot, "fruit_size_categorical")
+plt.title('Fruit size groups in each palm subfamily')
+#plt.savefig('fig03.png')
+```
+
+It was this dataset where I learned that palm trees can be divided into categories of their actual colour of their fruit
+
+Conspicuousness: Main fruit colors classified into conspicuous colors (e.g. orange, red, yellow, pink, crimson, scarlet) vs. cryptic colors (brown, black, green, blue, cream, grey, ivory, straw-coloured, white, purple).
+
+```{python}
+#plt.figure(figsize=(14,8))
+g = sns.FacetGrid(df, col="palm_subfamily", col_wrap=3)
+g.map(sns.histplot, "conspicuousness")
+plt.title('Conspicuousness in each palm subfamily')
+#plt.savefig('fig04.png')
+```
+
+The position of their canopy is important as well
+
+```{python}
+#plt.figure(figsize=(14,8))
+g = sns.FacetGrid(df, col="palm_subfamily", col_wrap=3)
+g.map(sns.histplot, "understorey_canopy")
+plt.title('Size of palms based on canopy position')
+#plt.savefig('fig06.png')
+```
+
+## Numerical columns
+
+Looking at some of the numerical columns, can we make an assumption that the size of the stem of the palm is in linear relationship with the size of the fruit?
+
+```{python}
+ 
+sns.lmplot(data = df, x = 'max_stem_dia_cm', y = 'max_fruit_width_cm', hue = 'fruit_size_categorical')
+plt.title('Bigger stem equals bigger palm fruit ?')
+
+```
+
+
+With the use of different python packages, eg pairplot from seaborn, it is very easy to visualise the relationship between the different numerical columns to have an average overview of the dataset.
+
+```{python}
+numcols = df.select_dtypes("float64")
+sns.pairplot(numcols)
+#plt.savefig('fig02.png')
+```
+:::
